@@ -1,310 +1,1125 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grok AI for Walmart Executives - Driving Strategic Excellence</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .section-bg {
-      background: linear-gradient(135deg, #0071DC 0%, #004080 100%); /* Walmart blue tones */
-    }
-    .card-hover:hover {
-      transform: translateY(-5px);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    }
-    .hero-bg {
-      background-image: url('https://images.unsplash.com/photo-1504868584819-f75e1074f2e8?auto=format&fit=crop&q=80&w=1470');
-      background-size: cover;
-      background-position: center;
-    }
-    .quote-bg {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-    .section-title {
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-    }
-    .btn {
-      transition: all 0.3s ease;
-    }
-    .btn:hover {
-      transform: scale(1.05);
-    }
-    .walmart-yellow {
-      color: #FFC220;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Shopping Migration Agent - Transfer Your Subscriptions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .walmart-blue { background-color: #0071DC; }
+        .walmart-blue-text { color: #0071DC; }
+        .walmart-yellow { background-color: #FFC220; }
+        .walmart-yellow-text { color: #FFC220; }
+        .amazon-orange { background-color: #FF9900; }
+        .amazon-orange-text { color: #FF9900; }
+
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0071DC 0%, #004080 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(0,113,220,0.4); }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #FFC220 0%, #FFB800 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(255,194,32,0.4); }
+
+        .progress-bar { transition: width 0.5s ease-in-out; }
+
+        .savings-highlight {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        .product-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .product-card:hover { border-color: #0071DC; }
+        .product-card.selected { border-color: #0071DC; background-color: #EFF6FF; }
+
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background-color: #0071DC;
+            color: white;
+        }
+        .step-indicator.completed {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .comparison-arrow {
+            animation: bounce-right 1s infinite;
+        }
+        @keyframes bounce-right {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+
+        .file-drop-zone {
+            border: 2px dashed #CBD5E1;
+            transition: all 0.3s ease;
+        }
+        .file-drop-zone:hover, .file-drop-zone.drag-over {
+            border-color: #0071DC;
+            background-color: #EFF6FF;
+        }
+
+        .toggle-switch {
+            transition: background-color 0.3s ease;
+        }
+        .toggle-switch.active { background-color: #0071DC; }
+        .toggle-knob {
+            transition: transform 0.3s ease;
+        }
+        .toggle-switch.active .toggle-knob { transform: translateX(24px); }
+
+        .modal-overlay {
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .subscription-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+        }
+
+        .frequency-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <!-- Header -->
-  <header class="section-bg text-white py-24 hero-bg">
-    <div class="container mx-auto px-4 text-center bg-opacity-80 bg-black py-12 rounded-2xl">
-      <h1 class="text-5xl md:text-6xl font-bold mb-4 section-title">Grok AI: Empowering Walmart's Executive Vision for Retail Leadership</h1>
-      <p class="text-xl md:text-2xl mb-8">Strategically aligned to accelerate digital transformation, enhance supply chain resilience, and deliver unmatched customer value—unlocking superior ROI and sustainable growth.</p>
-      <div class="flex justify-center gap-4">
-        <a href="https://x.ai/api" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold btn hover:bg-blue-100">Explore Enterprise API Solutions</a>
-        <a href="mailto:sales@x.ai?subject=Grok%20for%20Walmart%20C-Level%20Briefing" class="bg-blue-900 text-white px-8 py-4 rounded-lg font-semibold btn hover:bg-blue-800">Schedule C-Level Briefing</a>
-      </div>
-    </div>
-  </header>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="walmart-blue text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="#FFC220">
+                        <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/>
+                    </svg>
+                    <div>
+                        <h1 class="text-2xl font-bold">Walmart</h1>
+                        <p class="text-xs text-blue-200">Shopping Migration Agent</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#how-it-works" class="hover:text-yellow-300 transition">How It Works</a>
+                    <a href="#migrate" class="hover:text-yellow-300 transition">Start Migration</a>
+                    <a href="#faq" class="hover:text-yellow-300 transition">FAQ</a>
+                </nav>
+            </div>
+        </div>
+    </header>
 
-  <!-- Executive Summary Section -->
-  <section class="py-20 bg-white">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-12 section-title">Executive Overview: Grok AI as a Strategic Enabler</h2>
-      <p class="text-lg text-center mb-16 max-w-3xl mx-auto">In a retail landscape defined by volatility, tariffs, and rapid digital shifts, Grok AI from xAI delivers truth-seeking intelligence to optimize operations, mitigate risks, and capitalize on opportunities. Aligned with Walmart's FY2026 priorities, Grok drives eCommerce acceleration (22% Q1 growth), retail media expansion (31% for Walmart Connect), and ROI enhancement (15.3%, +30bps), while supporting sustainability and compliance goals.</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-gray-50 p-8 rounded-xl shadow-lg card-hover">
-          <svg class="w-12 h-12 mx-auto mb-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          <h3 class="text-2xl font-semibold mb-4 text-center">AI-Driven Growth</h3>
-          <p class="text-center">"AI is stepping up to meet demand for speed and personalization" – Retail Rewired Report 2025. Grok enables agentic AI for omnichannel dominance.</p>
-        </div>
-        <div class="bg-gray-50 p-8 rounded-xl shadow-lg card-hover">
-          <svg class="w-12 h-12 mx-auto mb-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-          <h3 class="text-2xl font-semibold mb-4 text-center">Operational Resilience</h3>
-          <p class="text-center">Fortify supply chains against disruptions, building on healthy Q1 inventory levels (+3.8%).</p>
-        </div>
-        <div class="bg-gray-50 p-8 rounded-xl shadow-lg card-hover">
-          <svg class="w-12 h-12 mx-auto mb-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-          <h3 class="text-2xl font-semibold mb-4 text-center">Value Creation</h3>
-          <p class="text-center">Amplify customer loyalty and profitability, with seamless integration into Walmart's ecosystem.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                    Switch to Walmart & Save Big
+                </h2>
+                <p class="text-xl text-blue-100 mb-8">
+                    Easily transfer your Amazon Subscribe & Save subscriptions to Walmart.
+                    Compare prices, find better deals, and enjoy free delivery with Walmart+.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="scrollToMigration()" class="btn-secondary text-gray-900 font-semibold px-8 py-4 rounded-full text-lg">
+                        Start Migration Now
+                    </button>
+                    <a href="#how-it-works" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-8 py-4 rounded-full text-lg transition">
+                        Learn More
+                    </a>
+                </div>
 
-  <!-- Integration and Compliance Section (New) -->
-  <section class="py-20 section-bg text-white">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-12 section-title">Seamless Integration & Enterprise-Grade Security</h2>
-      <p class="text-lg text-center mb-16 max-w-3xl mx-auto">Grok AI integrates effortlessly with Walmart's existing tech stack via API, ensuring compliance with data privacy (GDPR, CCPA) and security standards. Scalable for enterprise deployment, with zero-downtime implementation and robust risk mitigation.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-white text-gray-800 p-8 rounded-xl shadow-xl card-hover">
-          <h3 class="text-2xl font-semibold mb-4">Easy API Integration</h3>
-          <p>Plug into Walmart's data platforms for real-time insights, with customizable modules for supply chain, marketing, and analytics.</p>
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-8 mt-12 max-w-2xl mx-auto">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold walmart-yellow-text">23%</div>
+                        <div class="text-sm text-blue-200">Avg. Savings</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold walmart-yellow-text">50K+</div>
+                        <div class="text-sm text-blue-200">Products Matched</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold walmart-yellow-text">2 Min</div>
+                        <div class="text-sm text-blue-200">Setup Time</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="bg-white text-gray-800 p-8 rounded-xl shadow-xl card-hover">
-          <h3 class="text-2xl font-semibold mb-4">Compliance & Risk Management</h3>
-          <p>Built with truth-seeking AI to minimize biases, ensure ethical use, and support ESG goals like sustainable sourcing.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Functional Areas Section -->
-  <section class="py-20 bg-white">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-12 section-title">Strategic Use Cases & Business Impact</h2>
-      <div class="space-y-16">
-        <!-- Supply Chain -->
-        <div class="bg-gray-50 text-gray-800 p-8 rounded-xl shadow-xl flex flex-col md:flex-row items-center gap-8 card-hover">
-          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1470" alt="Supply Chain AI" class="w-full md:w-1/3 rounded-lg shadow-md object-cover">
-          <div>
-            <h3 class="text-3xl font-semibold mb-4">Supply Chain & Inventory Optimization</h3>
-            <p class="mb-4"><strong>Executive Priority:</strong> Resilience in tariff-impacted environments, with Q1 FY26 inventory at healthy +3.8% levels.</p>
-            <p class="mb-4"><strong>Strategic Applications:</strong></p>
-            <ul class="list-disc pl-6 mb-4">
-              <li>AI-powered forecasting incorporating global disruptions and demand volatility.</li>
-              <li>Automated supplier orchestration for real-time collaboration.</li>
-              <li>Intelligent routing to reduce costs and emissions.</li>
-            </ul>
-            <p><strong>Business Impact:</strong> 15-25% reduction in inventory costs; $500M+ annual savings; alignment with 15.3% ROI target.</p>
-            <blockquote class="mt-4 p-4 bg-white rounded text-gray-700 italic border-l-4 border-blue-900">
-              "Our inventory is at a healthy level as we head into a tariff-impacted period."
-              <cite class="block text-right text-sm mt-2">- John David Rainey, CFO & Executive VP</cite>
-            </blockquote>
-          </div>
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold text-center text-gray-800 mb-12">How It Works</h3>
+            <div class="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+                <div class="text-center">
+                    <div class="w-16 h-16 rounded-full walmart-blue text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Import Orders</h4>
+                    <p class="text-gray-600 text-sm">Upload your Amazon order history or connect your account</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 rounded-full walmart-blue text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Match Products</h4>
+                    <p class="text-gray-600 text-sm">Our AI finds identical or equivalent products at Walmart</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 rounded-full walmart-blue text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Compare Prices</h4>
+                    <p class="text-gray-600 text-sm">See side-by-side pricing and potential savings</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 rounded-full walmart-blue text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">4</div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Migrate</h4>
+                    <p class="text-gray-600 text-sm">Transfer subscriptions individually or all at once</p>
+                </div>
+            </div>
         </div>
-        <!-- Customer Experience -->
-        <div class="bg-gray-50 text-gray-800 p-8 rounded-xl shadow-xl flex flex-col md:flex-row items-center gap-8 card-hover">
-          <img src="https://images.unsplash.com/photo-1516321310769-4d8e1a21a7b6?auto=format&fit=crop&q=80&w=1470" alt="Customer Experience AI" class="w-full md:w-1/3 rounded-lg shadow-md object-cover">
-          <div>
-            <h3 class="text-3xl font-semibold mb-4">Customer Experience & Loyalty</h3>
-            <p class="mb-4"><strong>Executive Priority:</strong> Omni-channel reach covering 93% of U.S. households via store fulfillment.</p>
-            <p class="mb-4"><strong>Strategic Applications:</strong></p>
-            <ul class="list-disc pl-6 mb-4">
-              <li>Conversational AI for hyper-personalized support.</li>
-              <li>Sentiment-driven proactive engagement.</li>
-              <li>Recommendation engines boosting membership like Walmart+.</li>
-            </ul>
-            <p><strong>Business Impact:</strong> 20-30% CSAT boost; 15% conversion lift; $1B+ in incremental revenue.</p>
-            <blockquote class="mt-4 p-4 bg-white rounded text-gray-700 italic border-l-4 border-blue-900">
-              "Delivering value and convenience is resonating more than ever."
-              <cite class="block text-right text-sm mt-2">- John David Rainey, CFO & Executive VP</cite>
-            </blockquote>
-          </div>
-        </div>
-        <!-- Marketing -->
-        <div class="bg-gray-50 text-gray-800 p-8 rounded-xl shadow-xl flex flex-col md:flex-row items-center gap-8 card-hover">
-          <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1470" alt="Marketing AI" class="w-full md:w-1/3 rounded-lg shadow-md object-cover">
-          <div>
-            <h3 class="text-3xl font-semibold mb-4">Marketing & Retail Media</h3>
-            <p class="mb-4"><strong>Executive Priority:</strong> Walmart Connect growth at 31% in Q1 FY26.</p>
-            <p class="mb-4"><strong>Strategic Applications:</strong></p>
-            <ul class="list-disc pl-6 mb-4">
-              <li>Generative AI for campaign creation and optimization.</li>
-              <li>Trend intelligence for targeted promotions.</li>
-              <li>Data-driven pricing and audience segmentation.</li>
-            </ul>
-            <p><strong>Business Impact:</strong> 25% ROI uplift; $200M+ ad efficiency gains.</p>
-            <blockquote class="mt-4 p-4 bg-white rounded text-gray-700 italic border-l-4 border-blue-900">
-              "Using our data to help sellers access interested cohorts via Walmart Connect."
-              <cite class="block text-right text-sm mt-2">- John R. Furner, President & CEO, Walmart US</cite>
-            </blockquote>
-          </div>
-        </div>
-        <!-- Fraud Detection -->
-        <div class="bg-gray-50 text-gray-800 p-8 rounded-xl shadow-xl flex flex-col md:flex-row items-center gap-8 card-hover">
-          <img src="https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?auto=format&fit=crop&q=80&w=1470" alt="Fraud Detection AI" class="w-full md:w-1/3 rounded-lg shadow-md object-cover">
-          <div>
-            <h3 class="text-3xl font-semibold mb-4">Fraud Detection & Operational Security</h3>
-            <p class="mb-4"><strong>Executive Priority:</strong> Safeguarding assets in a high-risk environment.</p>
-            <p class="mb-4"><strong>Strategic Applications:</strong></p>
-            <ul class="list-disc pl-6 mb-4">
-              <li>Advanced anomaly detection across transactions.</li>
-              <li>Simulation-based training for teams.</li>
-              <li>Brand protection through social monitoring.</li>
-            </ul>
-            <p><strong>Business Impact:</strong> 30-40% fraud mitigation; $100M+ savings.</p>
-          </div>
-        </div>
-        <!-- Data Analytics -->
-        <div class="bg-gray-50 text-gray-800 p-8 rounded-xl shadow-xl flex flex-col md:flex-row items-center gap-8 card-hover">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1470" alt="Data Analytics AI" class="w-full md:w-1/3 rounded-lg shadow-md object-cover">
-          <div>
-            <h3 class="text-3xl font-semibold mb-4">Data Analytics & Decision Intelligence</h3>
-            <p class="mb-4"><strong>Executive Priority:</strong> Tech investments for long-term value, including automation.</p>
-            <p class="mb-4"><strong>Strategic Applications:</strong></p>
-            <ul class="list-disc pl-6 mb-4">
-              <li>Automated dashboards for real-time benchmarking.</li>
-              <li>Predictive workforce and sales modeling.</li>
-              <li>Ecosystem-wide data unification.</li>
-            </ul>
-            <p><strong>Business Impact:</strong> 20% decision speed; 15% productivity; $300M+ cost savings.</p>
-            <blockquote class="mt-4 p-4 bg-white rounded text-gray-700 italic border-l-4 border-blue-900">
-              "Flexibility to invest in supply chain automation and tech."
-              <cite class="block text-right text-sm mt-2">- John David Rainey, CFO & Executive VP</cite>
-            </blockquote>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ROI Summary Section -->
-  <section class="py-20 section-bg text-white">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-12 section-title">Executive ROI Dashboard</h2>
-      <div class="overflow-x-auto shadow-lg rounded-lg">
-        <table class="w-full text-left border-collapse bg-white text-gray-800">
-          <thead>
-            <tr class="bg-blue-900 text-white">
-              <th class="p-4">Strategic Area</th>
-              <th class="p-4">Core Application</th>
-              <th class="p-4">Key Metrics</th>
-              <th class="p-4">Projected Impact</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="hover:bg-gray-50">
-              <td class="p-4 border-t">Supply Chain</td>
-              <td class="p-4 border-t">Forecasting & Automation</td>
-              <td class="p-4 border-t">15-25% cost reduction</td>
-              <td class="p-4 border-t">$500M+ savings</td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-              <td class="p-4 border-t">Customer Experience</td>
-              <td class="p-4 border-t">Personalization Engines</td>
-              <td class="p-4 border-t">20-30% CSAT, 15% conversions</td>
-              <td class="p-4 border-t">$1B+ revenue</td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-              <td class="p-4 border-t">Marketing</td>
-              <td class="p-4 border-t">Media Optimization</td>
-              <td class="p-4 border-t">25% ROI improvement</td>
-              <td class="p-4 border-t">$200M+ efficiency</td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-              <td class="p-4 border-t">Security</td>
-              <td class="p-4 border-t">Anomaly Detection</td>
-              <td class="p-4 border-t">30-40% fraud cut</td>
-              <td class="p-4 border-t">$100M+ savings</td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-              <td class="p-4 border-t">Analytics</td>
-              <td class="p-4 border-t">Intelligent Insights</td>
-              <td class="p-4 border-t">20% faster decisions</td>
-              <td class="p-4 border-t">$300M+ reductions</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="text-center mt-8 text-sm italic">Projections informed by McKinsey, Deloitte, and Walmart Q1 FY26 data (e.g., 22% eComm growth). Request a tailored executive model.</p>
-    </div>
-  </section>
+    <!-- Main Migration Tool -->
+    <section id="migrate" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <!-- Progress Steps -->
+                <div class="flex justify-center mb-12">
+                    <div class="flex items-center space-x-4">
+                        <div id="step1-indicator" class="step-indicator active w-10 h-10 rounded-full flex items-center justify-center font-semibold border-2 border-blue-600">1</div>
+                        <div class="w-16 h-1 bg-gray-300 rounded" id="progress-line-1"></div>
+                        <div id="step2-indicator" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center font-semibold border-2 border-gray-300 text-gray-400">2</div>
+                        <div class="w-16 h-1 bg-gray-300 rounded" id="progress-line-2"></div>
+                        <div id="step3-indicator" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center font-semibold border-2 border-gray-300 text-gray-400">3</div>
+                        <div class="w-16 h-1 bg-gray-300 rounded" id="progress-line-3"></div>
+                        <div id="step4-indicator" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center font-semibold border-2 border-gray-300 text-gray-400">4</div>
+                    </div>
+                </div>
 
-  <!-- CTA Section -->
-  <section class="py-20 bg-white">
-    <div class="container mx-auto px-4 text-center">
-      <h2 class="text-4xl font-bold mb-8 section-title">Partner to Propel Walmart Forward</h2>
-      <p class="text-xl mb-12 max-w-3xl mx-auto">"Focused on growth, margins, and ROI while investing in customers." – Doug McMillon, CEO. Collaborate with xAI to deploy Grok AI and achieve strategic objectives.</p>
-      <div class="flex justify-center gap-4">
-        <a href="mailto:sales@x.ai?subject=Walmart%20Grok%20Executive%20ROI" class="bg-blue-900 text-white px-8 py-4 rounded-lg font-semibold btn hover:bg-blue-800">Secure Customized ROI Projection</a>
-        <a href="https://x.ai/grok" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold btn hover:bg-blue-100">View Grok Enterprise Features</a>
-      </div>
-    </div>
-  </section>
+                <!-- Step 1: Import -->
+                <div id="step1" class="step-content">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Import Your Amazon Data</h3>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-10">
-    <div class="container mx-auto px-4 text-center">
-      <p class="mb-4 text-lg">Grok AI by xAI: Accelerating Walmart's Journey to Retail Supremacy.</p>
-      <p class="text-sm">&copy; 2025 xAI. All rights reserved. Images courtesy of Unsplash. Insights from Walmart FY26 reports.</p>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- Option 1: File Upload -->
+                            <div class="border rounded-xl p-6 hover:border-blue-500 transition cursor-pointer" onclick="showUploadModal()">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 walmart-blue-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Upload Order History</h4>
+                                    <p class="text-gray-600 text-sm mb-4">Download your Amazon order history and upload it here</p>
+                                    <span class="text-blue-600 text-sm font-medium">Supports CSV, XLSX</span>
+                                </div>
+                            </div>
+
+                            <!-- Option 2: Demo Data -->
+                            <div class="border rounded-xl p-6 hover:border-blue-500 transition cursor-pointer" onclick="loadDemoData()">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Try Demo Data</h4>
+                                    <p class="text-gray-600 text-sm mb-4">See how it works with sample subscriptions</p>
+                                    <span class="text-green-600 text-sm font-medium">Quick Preview</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="text-sm text-blue-800"><strong>How to get your Amazon order data:</strong></p>
+                                    <ol class="text-sm text-blue-700 mt-2 list-decimal list-inside space-y-1">
+                                        <li>Go to Amazon.com → Account → Download Order Reports</li>
+                                        <li>Select "Subscribe & Save" or "Order History"</li>
+                                        <li>Download as CSV and upload here</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Review & Match -->
+                <div id="step2" class="step-content hidden">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800">Review Your Subscriptions</h3>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm text-gray-600">Select All</span>
+                                <button onclick="toggleSelectAll()" id="select-all-btn" class="toggle-switch w-12 h-6 bg-gray-300 rounded-full relative">
+                                    <div class="toggle-knob w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 shadow"></div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Summary Cards -->
+                        <div class="grid md:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-gray-800" id="total-items">0</div>
+                                <div class="text-sm text-gray-600">Total Items</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-green-600" id="items-matched">0</div>
+                                <div class="text-sm text-gray-600">Matched</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold walmart-blue-text" id="items-selected">0</div>
+                                <div class="text-sm text-gray-600">Selected</div>
+                            </div>
+                            <div class="savings-highlight rounded-lg p-4 text-center text-white">
+                                <div class="text-2xl font-bold" id="potential-savings">$0.00</div>
+                                <div class="text-sm opacity-90">Potential Savings/mo</div>
+                            </div>
+                        </div>
+
+                        <!-- Product List -->
+                        <div id="product-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                            <!-- Products will be inserted here -->
+                        </div>
+
+                        <div class="flex justify-between mt-8">
+                            <button onclick="goToStep(1)" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                ← Back
+                            </button>
+                            <button onclick="goToStep(3)" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold">
+                                Continue to Compare →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Price Comparison -->
+                <div id="step3" class="step-content hidden">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Price Comparison</h3>
+
+                        <!-- Comparison Summary -->
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white mb-8">
+                            <div class="grid md:grid-cols-3 gap-6 text-center">
+                                <div>
+                                    <div class="text-sm opacity-80 mb-1">Amazon Monthly Cost</div>
+                                    <div class="text-3xl font-bold amazon-orange-text" id="amazon-total">$0.00</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm opacity-80 mb-1">Walmart Monthly Cost</div>
+                                    <div class="text-3xl font-bold walmart-yellow-text" id="walmart-total">$0.00</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm opacity-80 mb-1">Your Savings</div>
+                                    <div class="text-3xl font-bold text-green-400" id="total-savings">$0.00</div>
+                                    <div class="text-sm opacity-80" id="savings-percent">(0% less)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Comparison Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Product</th>
+                                        <th class="px-4 py-3 text-center text-sm font-semibold amazon-orange-text">Amazon Price</th>
+                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-400">→</th>
+                                        <th class="px-4 py-3 text-center text-sm font-semibold walmart-blue-text">Walmart Price</th>
+                                        <th class="px-4 py-3 text-center text-sm font-semibold text-green-600">Savings</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="comparison-table" class="divide-y divide-gray-200">
+                                    <!-- Comparison rows will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Annual Projection -->
+                        <div class="mt-8 p-6 bg-green-50 rounded-xl border border-green-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-semibold text-green-800">Annual Savings Projection</h4>
+                                    <p class="text-sm text-green-700">Based on your selected subscriptions</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-4xl font-bold text-green-600" id="annual-savings">$0.00</div>
+                                    <div class="text-sm text-green-700">per year</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between mt-8">
+                            <button onclick="goToStep(2)" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                ← Back
+                            </button>
+                            <button onclick="goToStep(4)" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold">
+                                Proceed to Migrate →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Migration -->
+                <div id="step4" class="step-content hidden">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Complete Your Migration</h3>
+
+                        <!-- Migration Options -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-8">
+                            <div class="border-2 border-blue-500 rounded-xl p-6 bg-blue-50">
+                                <div class="flex items-center mb-4">
+                                    <input type="radio" name="migration-type" id="migrate-all" checked class="w-5 h-5 text-blue-600">
+                                    <label for="migrate-all" class="ml-3 font-semibold text-gray-800">Migrate All Selected</label>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Transfer all <span id="selected-count-all">0</span> subscriptions to Walmart in one click</p>
+                                <div class="flex items-center text-green-600 text-sm font-medium">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Recommended for most users
+                                </div>
+                            </div>
+
+                            <div class="border rounded-xl p-6 hover:border-gray-400 transition">
+                                <div class="flex items-center mb-4">
+                                    <input type="radio" name="migration-type" id="migrate-individual" class="w-5 h-5 text-blue-600">
+                                    <label for="migrate-individual" class="ml-3 font-semibold text-gray-800">Migrate Individually</label>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Choose specific items to migrate one at a time</p>
+                                <div class="flex items-center text-gray-500 text-sm">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                                    </svg>
+                                    More control over each item
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subscription Frequency -->
+                        <div class="mb-8 p-6 bg-gray-50 rounded-xl">
+                            <h4 class="font-semibold text-gray-800 mb-4">Default Delivery Frequency</h4>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-sm text-gray-600 block mb-2">Default Schedule</label>
+                                    <select id="default-frequency" class="frequency-select w-full p-3 border rounded-lg pr-10">
+                                        <option value="match">Match Amazon Schedule</option>
+                                        <option value="weekly">Every Week</option>
+                                        <option value="biweekly">Every 2 Weeks</option>
+                                        <option value="monthly">Every Month</option>
+                                        <option value="bimonthly">Every 2 Months</option>
+                                        <option value="quarterly">Every 3 Months</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-600 block mb-2">Start Date</label>
+                                    <input type="date" id="start-date" class="w-full p-3 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-600 block mb-2">Delivery Address</label>
+                                    <select class="frequency-select w-full p-3 border rounded-lg pr-10">
+                                        <option>Home Address</option>
+                                        <option>Work Address</option>
+                                        <option>+ Add New Address</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Individual Migration List -->
+                        <div id="individual-migration-list" class="hidden mb-8">
+                            <h4 class="font-semibold text-gray-800 mb-4">Select Items to Migrate</h4>
+                            <div id="migration-items" class="space-y-3 max-h-64 overflow-y-auto">
+                                <!-- Items will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Walmart+ Upsell -->
+                        <div class="mb-8 p-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Save even more with Walmart+</h4>
+                                    <p class="text-blue-100 text-sm">Free delivery, fuel savings, and exclusive deals</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold walmart-yellow-text">$12.95/mo</div>
+                                    <label class="flex items-center mt-2 cursor-pointer">
+                                        <input type="checkbox" id="walmart-plus" class="w-5 h-5 text-yellow-400 rounded">
+                                        <span class="ml-2 text-sm">Add Walmart+</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-between">
+                            <button onclick="goToStep(3)" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                                ← Back
+                            </button>
+                            <button onclick="completeMigration()" class="btn-secondary text-gray-900 px-8 py-3 rounded-lg font-bold text-lg">
+                                🚀 Complete Migration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success State -->
+                <div id="success-state" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
+                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-4">Migration Complete!</h3>
+                        <p class="text-gray-600 text-lg mb-6">Your subscriptions have been successfully set up with Walmart.</p>
+
+                        <div class="bg-green-50 rounded-xl p-6 mb-8 max-w-md mx-auto">
+                            <div class="text-sm text-green-700 mb-2">You'll save approximately</div>
+                            <div class="text-4xl font-bold text-green-600" id="final-savings">$0.00</div>
+                            <div class="text-sm text-green-700">per year on your subscriptions</div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <a href="#" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold inline-block">
+                                View My Subscriptions
+                            </a>
+                            <p class="text-gray-500 text-sm">
+                                A confirmation email has been sent to your address
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold text-center text-gray-800 mb-12">Frequently Asked Questions</h3>
+            <div class="max-w-3xl mx-auto space-y-4">
+                <div class="border rounded-lg">
+                    <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                        <span class="font-semibold text-gray-800">How does product matching work?</span>
+                        <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div class="hidden px-6 pb-4 text-gray-600">
+                        Our AI-powered matching system compares product names, UPCs, brands, sizes, and descriptions to find identical or equivalent products at Walmart. We prioritize exact matches but also suggest similar alternatives when available.
+                    </div>
+                </div>
+
+                <div class="border rounded-lg">
+                    <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                        <span class="font-semibold text-gray-800">Will my Amazon subscriptions be cancelled?</span>
+                        <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div class="hidden px-6 pb-4 text-gray-600">
+                        No, this tool only sets up new subscriptions at Walmart. You'll need to manually cancel your Amazon Subscribe & Save subscriptions through Amazon's website. We recommend waiting until your first Walmart delivery arrives before cancelling.
+                    </div>
+                </div>
+
+                <div class="border rounded-lg">
+                    <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                        <span class="font-semibold text-gray-800">What if a product isn't available at Walmart?</span>
+                        <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div class="hidden px-6 pb-4 text-gray-600">
+                        If we can't find an exact match, we'll show you similar alternatives from comparable brands. You can also skip any products you don't want to migrate.
+                    </div>
+                </div>
+
+                <div class="border rounded-lg">
+                    <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                        <span class="font-semibold text-gray-800">Is my data secure?</span>
+                        <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div class="hidden px-6 pb-4 text-gray-600">
+                        Yes, we take data security seriously. Your uploaded order data is processed securely and is only used for matching products. We never store your Amazon credentials and all data is encrypted in transit.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="#FFC220">
+                    <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/>
+                </svg>
+                <span class="ml-2 text-xl font-bold">Walmart</span>
+            </div>
+            <p class="text-gray-400 text-sm">© 2024 Walmart Inc. All rights reserved.</p>
+            <p class="text-gray-500 text-xs mt-2">Shopping Migration Agent - Making the switch simple</p>
+        </div>
+    </footer>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h4 class="text-xl font-bold text-gray-800">Upload Your Amazon Data</h4>
+                <button onclick="hideUploadModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="drop-zone" class="file-drop-zone rounded-xl p-12 text-center"
+                 ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="text-gray-600 mb-4">Drag and drop your file here, or</p>
+                <label class="btn-primary text-white px-6 py-2 rounded-lg cursor-pointer inline-block">
+                    Browse Files
+                    <input type="file" class="hidden" accept=".csv,.xlsx" onchange="handleFileSelect(event)">
+                </label>
+                <p class="text-gray-400 text-sm mt-4">Supports CSV and XLSX files</p>
+            </div>
+
+            <div id="file-selected" class="hidden mt-6 p-4 bg-green-50 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-8 h-8 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="font-semibold text-green-800" id="file-name">file.csv</p>
+                        <p class="text-sm text-green-600">Ready to process</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-4">
+                <button onclick="hideUploadModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button onclick="processUpload()" id="process-btn" class="btn-primary text-white px-6 py-2 rounded-lg" disabled>
+                    Process File
+                </button>
+            </div>
+        </div>
     </div>
-  </footer>
+
+    <script>
+        // Demo data - simulated Amazon subscriptions
+        const demoSubscriptions = [
+            {
+                id: 1,
+                amazonName: "Tide PODS Laundry Detergent Soap Pacs, 81 Count",
+                amazonPrice: 24.99,
+                amazonFrequency: "monthly",
+                walmartName: "Tide PODS Laundry Detergent Pacs, 81 ct",
+                walmartPrice: 21.97,
+                walmartUrl: "#",
+                category: "Household",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 2,
+                amazonName: "Bounty Quick-Size Paper Towels, 12 Family Rolls",
+                amazonPrice: 32.49,
+                amazonFrequency: "monthly",
+                walmartName: "Bounty Quick-Size Paper Towels, 12 Family Rolls",
+                walmartPrice: 28.97,
+                walmartUrl: "#",
+                category: "Household",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 3,
+                amazonName: "Charmin Ultra Soft Toilet Paper, 24 Mega Rolls",
+                amazonPrice: 29.99,
+                amazonFrequency: "monthly",
+                walmartName: "Charmin Ultra Soft Toilet Paper, 24 Mega Rolls",
+                walmartPrice: 26.94,
+                walmartUrl: "#",
+                category: "Household",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 4,
+                amazonName: "Folgers Classic Roast Ground Coffee, 48 Oz",
+                amazonPrice: 14.99,
+                amazonFrequency: "biweekly",
+                walmartName: "Folgers Classic Roast Ground Coffee, 48 oz",
+                walmartPrice: 12.98,
+                walmartUrl: "#",
+                category: "Grocery",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 5,
+                amazonName: "Quaker Instant Oatmeal Variety Pack, 48 Count",
+                amazonPrice: 15.99,
+                amazonFrequency: "monthly",
+                walmartName: "Quaker Instant Oatmeal Variety Pack, 48 ct",
+                walmartPrice: 13.98,
+                walmartUrl: "#",
+                category: "Grocery",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 6,
+                amazonName: "Purina Pro Plan High Protein Dog Food, 35 lb",
+                amazonPrice: 68.99,
+                amazonFrequency: "monthly",
+                walmartName: "Purina Pro Plan Adult Dog Food, 35 lb Bag",
+                walmartPrice: 62.48,
+                walmartUrl: "#",
+                category: "Pet Supplies",
+                matchConfidence: 95,
+                selected: true
+            },
+            {
+                id: 7,
+                amazonName: "Crest 3D White Toothpaste, 4 Pack",
+                amazonPrice: 18.99,
+                amazonFrequency: "quarterly",
+                walmartName: "Crest 3D White Toothpaste, 4 Pack",
+                walmartPrice: 15.97,
+                walmartUrl: "#",
+                category: "Personal Care",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 8,
+                amazonName: "Huggies Little Snugglers Diapers, Size 2, 180 ct",
+                amazonPrice: 49.99,
+                amazonFrequency: "monthly",
+                walmartName: "Huggies Little Snugglers Baby Diapers, Size 2, 180 ct",
+                walmartPrice: 44.94,
+                walmartUrl: "#",
+                category: "Baby",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 9,
+                amazonName: "Similac Pro-Advance Infant Formula, 36 oz",
+                amazonPrice: 44.99,
+                amazonFrequency: "biweekly",
+                walmartName: "Similac Pro-Advance Baby Formula, 36 oz",
+                walmartPrice: 39.98,
+                walmartUrl: "#",
+                category: "Baby",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 10,
+                amazonName: "Dawn Platinum Dish Soap, 90 oz",
+                amazonPrice: 12.99,
+                amazonFrequency: "bimonthly",
+                walmartName: "Dawn Platinum Dishwashing Liquid, 90 oz",
+                walmartPrice: 10.97,
+                walmartUrl: "#",
+                category: "Household",
+                matchConfidence: 100,
+                selected: true
+            },
+            {
+                id: 11,
+                amazonName: "Dove Body Wash, 4 Pack, 22 oz each",
+                amazonPrice: 24.99,
+                amazonFrequency: "quarterly",
+                walmartName: "Dove Deep Moisture Body Wash, 22 oz, 4 Pack",
+                walmartPrice: 21.88,
+                walmartUrl: "#",
+                category: "Personal Care",
+                matchConfidence: 95,
+                selected: true
+            },
+            {
+                id: 12,
+                amazonName: "Nature's Bounty Vitamin D3, 400 Softgels",
+                amazonPrice: 16.99,
+                amazonFrequency: "quarterly",
+                walmartName: "Nature's Bounty Vitamin D3 5000 IU, 400 ct",
+                walmartPrice: 14.44,
+                walmartUrl: "#",
+                category: "Health",
+                matchConfidence: 90,
+                selected: true
+            }
+        ];
+
+        let subscriptions = [];
+        let currentStep = 1;
+        let uploadedFile = null;
+
+        // Initialize date picker with tomorrow's date
+        document.addEventListener('DOMContentLoaded', function() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('start-date').value = tomorrow.toISOString().split('T')[0];
+
+            // Add radio button listeners
+            document.getElementById('migrate-all').addEventListener('change', function() {
+                document.getElementById('individual-migration-list').classList.add('hidden');
+            });
+            document.getElementById('migrate-individual').addEventListener('change', function() {
+                document.getElementById('individual-migration-list').classList.remove('hidden');
+                renderMigrationItems();
+            });
+        });
+
+        function scrollToMigration() {
+            document.getElementById('migrate').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function loadDemoData() {
+            subscriptions = JSON.parse(JSON.stringify(demoSubscriptions));
+            goToStep(2);
+        }
+
+        function goToStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+
+            // Update step indicators
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                indicator.classList.remove('active', 'completed');
+                if (i < step) {
+                    indicator.classList.add('completed');
+                } else if (i === step) {
+                    indicator.classList.add('active');
+                }
+
+                // Update progress lines
+                if (i < 4) {
+                    const line = document.getElementById(`progress-line-${i}`);
+                    if (i < step) {
+                        line.classList.add('bg-green-500');
+                        line.classList.remove('bg-gray-300');
+                    } else {
+                        line.classList.remove('bg-green-500');
+                        line.classList.add('bg-gray-300');
+                    }
+                }
+            }
+
+            // Show current step
+            document.getElementById(`step${step}`).classList.remove('hidden');
+            currentStep = step;
+
+            // Update step-specific content
+            if (step === 2) {
+                renderProductList();
+                updateSummary();
+            } else if (step === 3) {
+                renderComparisonTable();
+            } else if (step === 4) {
+                updateMigrationStep();
+            }
+
+            // Scroll to top of section
+            document.getElementById('migrate').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderProductList() {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+
+            subscriptions.forEach(sub => {
+                const savings = sub.amazonPrice - sub.walmartPrice;
+                const savingsPercent = ((savings / sub.amazonPrice) * 100).toFixed(0);
+
+                const productCard = document.createElement('div');
+                productCard.className = `product-card p-4 rounded-lg border ${sub.selected ? 'selected' : ''}`;
+                productCard.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-4 flex-1">
+                            <input type="checkbox" ${sub.selected ? 'checked' : ''}
+                                   onchange="toggleProduct(${sub.id})"
+                                   class="w-5 h-5 mt-1 text-blue-600 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="subscription-badge bg-gray-200 text-gray-700 rounded-full">${sub.category}</span>
+                                    <span class="subscription-badge ${sub.matchConfidence === 100 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} rounded-full">
+                                        ${sub.matchConfidence}% match
+                                    </span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800">${sub.amazonName}</h4>
+                                <p class="text-sm text-gray-500">Ships ${sub.amazonFrequency}</p>
+                            </div>
+                        </div>
+                        <div class="text-right ml-4">
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <div class="text-sm text-gray-500">Amazon</div>
+                                    <div class="font-semibold amazon-orange-text">$${sub.amazonPrice.toFixed(2)}</div>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 comparison-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                                <div>
+                                    <div class="text-sm text-gray-500">Walmart</div>
+                                    <div class="font-semibold walmart-blue-text">$${sub.walmartPrice.toFixed(2)}</div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-green-600 text-sm font-medium">
+                                Save $${savings.toFixed(2)} (${savingsPercent}%)
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(productCard);
+            });
+        }
+
+        function toggleProduct(id) {
+            const sub = subscriptions.find(s => s.id === id);
+            if (sub) {
+                sub.selected = !sub.selected;
+                updateSummary();
+                renderProductList();
+            }
+        }
+
+        function toggleSelectAll() {
+            const btn = document.getElementById('select-all-btn');
+            const allSelected = subscriptions.every(s => s.selected);
+
+            subscriptions.forEach(s => s.selected = !allSelected);
+
+            if (!allSelected) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+
+            updateSummary();
+            renderProductList();
+        }
+
+        function updateSummary() {
+            const total = subscriptions.length;
+            const matched = subscriptions.filter(s => s.matchConfidence >= 90).length;
+            const selected = subscriptions.filter(s => s.selected).length;
+            const savings = subscriptions
+                .filter(s => s.selected)
+                .reduce((sum, s) => sum + (s.amazonPrice - s.walmartPrice), 0);
+
+            document.getElementById('total-items').textContent = total;
+            document.getElementById('items-matched').textContent = matched;
+            document.getElementById('items-selected').textContent = selected;
+            document.getElementById('potential-savings').textContent = `$${savings.toFixed(2)}`;
+
+            // Update select all button state
+            const btn = document.getElementById('select-all-btn');
+            if (subscriptions.every(s => s.selected)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function renderComparisonTable() {
+            const selectedSubs = subscriptions.filter(s => s.selected);
+            const tbody = document.getElementById('comparison-table');
+            tbody.innerHTML = '';
+
+            let amazonTotal = 0;
+            let walmartTotal = 0;
+
+            selectedSubs.forEach(sub => {
+                amazonTotal += sub.amazonPrice;
+                walmartTotal += sub.walmartPrice;
+                const savings = sub.amazonPrice - sub.walmartPrice;
+                const savingsPercent = ((savings / sub.amazonPrice) * 100).toFixed(0);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-3">
+                        <div class="font-medium text-gray-800">${sub.amazonName}</div>
+                        <div class="text-xs text-gray-500">${sub.category} · ${sub.amazonFrequency}</div>
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold amazon-orange-text">$${sub.amazonPrice.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-center text-gray-400">→</td>
+                    <td class="px-4 py-3 text-center font-semibold walmart-blue-text">$${sub.walmartPrice.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="text-green-600 font-semibold">-$${savings.toFixed(2)}</span>
+                        <span class="text-green-500 text-xs block">(${savingsPercent}%)</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            const totalSavings = amazonTotal - walmartTotal;
+            const savingsPercent = ((totalSavings / amazonTotal) * 100).toFixed(0);
+
+            document.getElementById('amazon-total').textContent = `$${amazonTotal.toFixed(2)}`;
+            document.getElementById('walmart-total').textContent = `$${walmartTotal.toFixed(2)}`;
+            document.getElementById('total-savings').textContent = `-$${totalSavings.toFixed(2)}`;
+            document.getElementById('savings-percent').textContent = `(${savingsPercent}% less)`;
+            document.getElementById('annual-savings').textContent = `$${(totalSavings * 12).toFixed(2)}`;
+        }
+
+        function updateMigrationStep() {
+            const selected = subscriptions.filter(s => s.selected).length;
+            document.getElementById('selected-count-all').textContent = selected;
+        }
+
+        function renderMigrationItems() {
+            const container = document.getElementById('migration-items');
+            container.innerHTML = '';
+
+            const selectedSubs = subscriptions.filter(s => s.selected);
+            selectedSubs.forEach(sub => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" checked class="w-4 h-4 text-blue-600 rounded mr-3">
+                        <span class="text-gray-800">${sub.walmartName}</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <select class="frequency-select text-sm border rounded px-2 py-1 pr-8">
+                            <option ${sub.amazonFrequency === 'weekly' ? 'selected' : ''}>Weekly</option>
+                            <option ${sub.amazonFrequency === 'biweekly' ? 'selected' : ''}>Every 2 weeks</option>
+                            <option ${sub.amazonFrequency === 'monthly' ? 'selected' : ''}>Monthly</option>
+                            <option ${sub.amazonFrequency === 'bimonthly' ? 'selected' : ''}>Every 2 months</option>
+                            <option ${sub.amazonFrequency === 'quarterly' ? 'selected' : ''}>Every 3 months</option>
+                        </select>
+                        <span class="font-semibold walmart-blue-text">$${sub.walmartPrice.toFixed(2)}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function completeMigration() {
+            const selectedSubs = subscriptions.filter(s => s.selected);
+            const totalSavings = selectedSubs.reduce((sum, s) => sum + (s.amazonPrice - s.walmartPrice), 0);
+            const annualSavings = totalSavings * 12;
+
+            // Hide step 4, show success state
+            document.getElementById('step4').classList.add('hidden');
+            document.getElementById('success-state').classList.remove('hidden');
+            document.getElementById('final-savings').textContent = `$${annualSavings.toFixed(2)}`;
+
+            // Update all step indicators to completed
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                indicator.classList.remove('active');
+                indicator.classList.add('completed');
+            }
+
+            // Scroll to top
+            document.getElementById('migrate').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // File upload handling
+        function showUploadModal() {
+            document.getElementById('upload-modal').classList.remove('hidden');
+        }
+
+        function hideUploadModal() {
+            document.getElementById('upload-modal').classList.add('hidden');
+            document.getElementById('file-selected').classList.add('hidden');
+            document.getElementById('process-btn').disabled = true;
+            uploadedFile = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function processFile(file) {
+            const validTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            const validExtensions = ['.csv', '.xlsx'];
+            const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+            if (hasValidExtension || validTypes.includes(file.type)) {
+                uploadedFile = file;
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-selected').classList.remove('hidden');
+                document.getElementById('process-btn').disabled = false;
+            } else {
+                alert('Please upload a CSV or XLSX file');
+            }
+        }
+
+        function processUpload() {
+            // In a real implementation, this would parse the file
+            // For demo purposes, we'll load the demo data
+            hideUploadModal();
+            subscriptions = JSON.parse(JSON.stringify(demoSubscriptions));
+            goToStep(2);
+        }
+
+        // FAQ toggle
+        function toggleFaq(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('svg');
+
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+    </script>
 </body>
 </html>
